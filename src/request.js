@@ -24,7 +24,7 @@ const request = async (endpoint, reqOpts = {}) => {
   } catch (err) {
     err.url = url
     print(err)
-    throw err
+    return err
   }
 }
 
