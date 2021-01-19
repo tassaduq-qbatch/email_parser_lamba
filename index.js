@@ -3,7 +3,7 @@ const AWS = require('aws-sdk')
 const cheerio = require('cheerio')
 const simpleParser = require('mailparser').simpleParser
 const { createAuthToken, createS3Object } = require('./src/db')
-const { ENV, print, tokenText, tenantInfo, decode } = require('./src/utils')
+const { ENV, print, tokenText, tenantInfo, decode, parseText, mattEmails } = require('./src/utils')
 const { getTenantId } = require('./src/request')
 const { AWS_SES_KEY_ID, AWS_SES_SECRET_KEY } = ENV
 
@@ -21,7 +21,9 @@ exports.handler = async (event, context) => {
     const s3Key = Key.replace('scepteremail_/', '')
     const file = await s3.getObject({ Bucket, Key }).promise()
     const parsed = await simpleParser(file.Body.toString())
-    const forwardedEmail = parsed.headers.get('x-forwarded-to') || parsed.to.text
+    const forwardHeader = parsed.headers.get("x-forwarded-to")
+    let forwardedEmail = forwardHeader ? (Array.isArray(forwardHeader) ? forwardHeader.shift() : forwardHeader) : parsed.to.text
+    if (mattEmails.some(mattEmail => String(forwardedEmail).includes(mattEmail))) forwardedEmail = 'manual_fulfillment@scepteremail.com'
     const result = await getTenantId(forwardedEmail)
 
     if (result.tenant) tenantInfo.name = decode(result.tenant, 4)
@@ -46,7 +48,7 @@ async function parseTokenDetails ({ parsed, s3Key }) {
   print('parsing token details')
   const $ = cheerio.load(parsed.html)
   const approvalURL = $("a:contains('https://www.amazon.com/a/c/r?k')").text().replace(/\s/, '').trim()
-  const token = $("p[class='otp']").text()
+  const token = $("p[class='otp']").text() || parseText(parsed.text, /confirmation code:\s*(\d+)/i, 1)
   const data = {
     account: parsed.to.text,
     approval_url: approvalURL,
