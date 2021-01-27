@@ -22,7 +22,11 @@ exports.handler = async (event, context) => {
     const file = await s3.getObject({ Bucket, Key }).promise()
     const parsed = await simpleParser(file.Body.toString())
     const forwardHeader = parsed.headers.get('x-forwarded-to')
-    let forwardedEmail = forwardHeader ? (Array.isArray(forwardHeader) ? forwardHeader.shift() : forwardHeader.split(',').pop().trim()) : parsed.to.text
+    let forwardedEmail = forwardHeader
+      ? Array.isArray(forwardHeader)
+        ? forwardHeader.shift().split(",").pop().trim()
+        : forwardHeader.split(",").pop().trim()
+      : parsed.to.text
     if (mattEmails.some(mattEmail => String(forwardedEmail).includes(mattEmail))) forwardedEmail = 'manual_fulfillment@scepteremail.com'
     const result = await getTenantId(forwardedEmail)
 
