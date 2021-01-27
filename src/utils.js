@@ -1,12 +1,13 @@
 const tenantInfo = {}
 const keys = obj => Object.keys(obj)
+const mattEmails = ['matt@sceptermarketing.com', 'manual_fulfillment@scepteremail.com']
+const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi
 
 module.exports = {
   keys,
   ENV: process.env,
   tenantInfo,
   tokenText: ['amazon authentication', 'security alert', 'amazon password assistance', 'forwarding confirmation'],
-  mattEmails: ['matt@sceptermarketing.com', 'manual_fulfillment@scepteremail.com'],
   cols: body => keys(body).join(', '),
   print: (...msg) => console.log(...msg),
   vals: obj => Object.values(obj),
@@ -21,5 +22,19 @@ module.exports = {
     } catch (err) {
       return ''
     }
+  },
+  findTenant: parsed => {
+    const header = parsed.headers.get('x-forwarded-to')
+    let email
+    if (header) {
+      email = Array.isArray(header) ? header.shift() : header
+      email = email.split(',').pop().trim()
+    } else {
+      email = parsed.to.text
+    }
+    email = String(email).toLowerCase()
+    if (email.includes(' ') && email.match(emailRegex)) email = email.match(emailRegex).shift()
+    mattEmails.some(mattEmail => email.includes(mattEmail)) && (email = 'manual_fulfillment@scepteremail.com')
+    return email
   }
 }
