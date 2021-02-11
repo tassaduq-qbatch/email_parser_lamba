@@ -33,8 +33,8 @@ module.exports = {
 
     const tenantEmail = emails.find(email => mapping[email.toLowerCase()])
     if (tenantEmail) {
-      console.log('found via mapping:', tenantEmail)
-      return tenantEmail
+      console.log('found via mapping:', tenantEmail, 'id:', mapping[tenantEmail.toLowerCase()])
+      return mapping[tenantEmail.toLowerCase()]
     }
     let email
     if (header) {
