@@ -32,7 +32,10 @@ module.exports = {
       .filter(x => x)
 
     const tenantEmail = emails.find(email => mapping[email.toLowerCase()])
-    if (tenantEmail) return tenantEmail
+    if (tenantEmail) {
+      console.log('found via mapping:', tenantEmail)
+      return tenantEmail
+    }
     let email
     if (header) {
       email = Array.isArray(header) ? header.shift() : header
