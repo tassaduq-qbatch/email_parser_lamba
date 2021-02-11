@@ -24,6 +24,7 @@ exports.handler = async (event, context) => {
     const mapping = await credentialsMapping()
     const forwardedEmail = findTenant(parsed, mapping)
     if (/^\d+$/.test(forwardedEmail)) {
+      print('no need to call api')
       tenantInfo.name = `tenant_${forwardedEmail}`
     } else {
       const result = await getTenantId(forwardedEmail)
