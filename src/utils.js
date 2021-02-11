@@ -28,11 +28,11 @@ module.exports = {
     let email
     if (header) {
       email = Array.isArray(header) ? header.shift() : header
-      email = email.split(',').pop().trim()
+      email = email.split(',').find(x => x.includes("emails.ecomcircles.com")) || email.split(',').pop()
     } else {
       email = parsed.to.text
     }
-    email = String(email).toLowerCase()
+    email = String(email).toLowerCase().trim()
     if (email.includes(' ') && email.match(emailRegex)) email = email.match(emailRegex).shift()
     mattEmails.some(mattEmail => email.includes(mattEmail)) && (email = 'manual_fulfillment@scepteremail.com')
     return email
