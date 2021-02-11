@@ -28,9 +28,8 @@ const request = async (endpoint, reqOpts = {}) => {
   }
 }
 
-const getTenantId = email => request(`tenant/token/${email}`)
-
 module.exports = {
   request,
-  getTenantId
+  getTenantId: email => request(`tenant/token/${email}`),
+  credentialsMapping: () => request('credentials_mapping')
 }

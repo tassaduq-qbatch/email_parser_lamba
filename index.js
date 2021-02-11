@@ -4,7 +4,7 @@ const cheerio = require('cheerio')
 const simpleParser = require('mailparser').simpleParser
 const { createAuthToken, createS3Object } = require('./src/db')
 const { print, decode, parseText, findTenant, ENV, tokenText, tenantInfo } = require('./src/utils')
-const { getTenantId } = require('./src/request')
+const { getTenantId, credentialsMapping } = require('./src/request')
 const { AWS_SES_KEY_ID, AWS_SES_SECRET_KEY } = ENV
 
 AWS.config.update({ accessKeyId: AWS_SES_KEY_ID, secretAccessKey: AWS_SES_SECRET_KEY })
@@ -21,7 +21,8 @@ exports.handler = async (event, context) => {
     const s3Key = Key.replace('scepteremail_/', '')
     const file = await s3.getObject({ Bucket, Key }).promise()
     const parsed = await simpleParser(file.Body.toString())
-    const forwardedEmail = findTenant(parsed)
+    const mapping = await credentialsMapping()
+    const forwardedEmail = findTenant(parsed, mapping)
     const result = await getTenantId(forwardedEmail)
 
     if (result.tenant) tenantInfo.name = decode(result.tenant, 4)

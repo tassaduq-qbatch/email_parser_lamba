@@ -23,12 +23,20 @@ module.exports = {
       return ''
     }
   },
-  findTenant: parsed => {
+  findTenant: (parsed, mapping) => {
     const header = parsed.headers.get('x-forwarded-to')
+    const emails = [String(header), parsed.to && parsed.to.text]
+      .filter(x => x)
+      .map(x => x.match(emailRegex))
+      .flat()
+      .filter(x => x)
+
+    const tenantEmail = emails.find(email => mapping[email.toLowerCase()])
+    if (tenantEmail) return tenantEmail
     let email
     if (header) {
       email = Array.isArray(header) ? header.shift() : header
-      email = email.split(',').find(x => x.includes("emails.ecomcircles.com")) || email.split(',').pop()
+      email = email.split(',').find(x => x.includes('emails.ecomcircles.com')) || email.split(',').pop()
     } else {
       email = parsed.to.text
     }
