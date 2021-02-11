@@ -23,10 +23,13 @@ exports.handler = async (event, context) => {
     const parsed = await simpleParser(file.Body.toString())
     const mapping = await credentialsMapping()
     const forwardedEmail = findTenant(parsed, mapping)
-    const result = await getTenantId(forwardedEmail)
-
-    if (result.tenant) tenantInfo.name = decode(result.tenant, 4)
-    else print('no tenant found for this email', { s3Key, forwardedEmail })
+    if (/^\d+$/.test(forwardedEmail)) {
+      tenantInfo.name = `tenant_${forwardedEmail}`
+    } else {
+      const result = await getTenantId(forwardedEmail)
+      if (result.tenant) tenantInfo.name = decode(result.tenant, 4)
+      else print('no tenant found for this email', { s3Key, forwardedEmail })
+    }
     print('tenantInfo.name:', tenantInfo.name)
 
     const status = tokenText.some(txt => String(parsed.subject).toLowerCase().includes(txt)) ? 'done' : 'pending'
