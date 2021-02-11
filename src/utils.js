@@ -27,12 +27,14 @@ module.exports = {
     const header = parsed.headers.get('x-forwarded-to')
     let email
     if (header) {
-      email = Array.isArray(header) ? header.shift() : header
-      email = email.split(',').pop().trim()
+      email = Array.isArray(header)
+        ? header.find(x => x.includes("emails.ecomcircles.com") || x.includes("scepteremail.com")) || header.pop()
+        : header.split(',').find(x => x.includes("emails.ecomcircles.com") || x.includes("scepteremail.com")) || header.split(',').pop()
+      if (email.includes('<')) email = email.replace(/(<|>)/g, '')
     } else {
       email = parsed.to.text
     }
-    email = String(email).toLowerCase()
+    email = String(email).toLowerCase().trim()
     if (email.includes(' ') && email.match(emailRegex)) email = email.match(emailRegex).shift()
     mattEmails.some(mattEmail => email.includes(mattEmail)) && (email = 'manual_fulfillment@scepteremail.com')
     return email
