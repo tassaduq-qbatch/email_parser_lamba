@@ -47,5 +47,6 @@ module.exports = {
     if (email.includes(' ') && email.match(emailRegex)) email = email.match(emailRegex).shift()
     mattEmails.some(mattEmail => email.includes(mattEmail)) && (email = 'manual_fulfillment@scepteremail.com')
     return email
-  }
+  },
+  parseEmails: str => [str.match(emailRegex)].flat().filter(x => x).join(', ')
 }

@@ -3,7 +3,7 @@ const AWS = require('aws-sdk')
 const cheerio = require('cheerio')
 const simpleParser = require('mailparser').simpleParser
 const { createAuthToken, createS3Object } = require('./src/db')
-const { print, decode, parseText, findTenant, ENV, tokenText, tenantInfo } = require('./src/utils')
+const { print, decode, parseText, findTenant, parseEmails, ENV, tokenText, tenantInfo } = require('./src/utils')
 const { getTenantId, credentialsMapping } = require('./src/request')
 const { AWS_SES_KEY_ID, AWS_SES_SECRET_KEY } = ENV
 
@@ -40,7 +40,9 @@ exports.handler = async (event, context) => {
       s3_key: s3Key,
       email_date: parsed.date,
       status,
-      subject: parsed.subject
+      subject: parsed.subject,
+      to: parseEmails(String(parsed.to && parsed.to.text.toLowerCase())),
+      from: parseEmails(String(parsed.from && parsed.from.text.toLowerCase()))
     })
   } catch (e) {
     print(e)
@@ -56,7 +58,9 @@ async function parseTokenDetails ({ parsed, s3Key }) {
     account: parsed.to.text,
     approval_url: approvalURL,
     s3_key: s3Key,
-    auth_code: token
+    auth_code: token,
+    created_at: new Date(),
+    updated_at: new Date()
   }
   print('token details: ', data)
   if (data.approval_url || data.auth_code) await createAuthToken(data)
