@@ -41,8 +41,10 @@ exports.handler = async (event, context) => {
       email_date: parsed.date,
       status,
       subject: parsed.subject,
-      to: parseEmails(String(parsed.to && parsed.to.text.toLowerCase())),
-      from: parseEmails(String(parsed.from && parsed.from.text.toLowerCase()))
+      created_at: new Date(),
+      updated_at: new Date(),
+      email_to: parseEmails(parsed.to && parsed.to.text),
+      email_from: parseEmails(parsed.from && parsed.from.text)
     })
   } catch (e) {
     print(e)

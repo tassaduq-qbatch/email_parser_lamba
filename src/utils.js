@@ -48,5 +48,9 @@ module.exports = {
     mattEmails.some(mattEmail => email.includes(mattEmail)) && (email = 'manual_fulfillment@scepteremail.com')
     return email
   },
-  parseEmails: str => [str.match(emailRegex)].flat().filter(x => x).join(', ')
+  parseEmails: str =>
+    [String(str).toLowerCase().match(emailRegex)]
+      .flat()
+      .filter(x => x)
+      .join(', ')
 }
