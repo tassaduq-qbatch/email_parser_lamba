@@ -7,6 +7,7 @@ module.exports = {
   keys,
   ENV: process.env,
   tenantInfo,
+  sleep: (secs = 1) => new Promise(resolve => setTimeout(resolve, secs * 1000)),
   tokenText: ['amazon authentication', 'security alert', 'amazon password assistance', 'forwarding confirmation'],
   cols: body => keys(body).join(', '),
   print: (...msg) => console.log(...msg),
