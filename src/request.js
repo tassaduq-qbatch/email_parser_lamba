@@ -1,6 +1,15 @@
 const fetch = require('node-fetch')
 const { encode, ENV, print, parseRes, sleep } = require('./utils')
 
+const hitApi = async (url, opts) => {
+  try {
+    return await fetch(url, opts)
+  } catch (error) {
+    print('error:', error.message)
+    return error
+  }
+}
+
 const request = async (endpoint, reqOpts = {}) => {
   let tries = 0
   const url = ENV.ECOM_API_URL + endpoint
@@ -14,14 +23,14 @@ const request = async (endpoint, reqOpts = {}) => {
   try {
     let response
     while (tries < 2) {
-      response = await fetch(url, opts)
-      if (response.status !== 500) break
-      await sleep()
+      response = await hitApi(url, opts)
+      if (response.status && response.status !== 500) break
+      await sleep(2)
       tries++
     }
 
     if (!response.ok) {
-      const error = await parseRes(response, reqOpts.type)
+      const error = response.status ? await parseRes(response, reqOpts.type) : response
       throw error
     }
 
