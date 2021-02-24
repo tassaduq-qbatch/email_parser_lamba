@@ -24,7 +24,7 @@ const request = async (endpoint, reqOpts = {}) => {
     let response
     while (tries < 2) {
       response = await hitApi(url, opts)
-      if (response.status && response.status !== 500) break
+      if (response.status && ![500, 501, 502, 503].includes(response.status)) break
       await sleep(2)
       tries++
     }
