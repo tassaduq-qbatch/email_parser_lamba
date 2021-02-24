@@ -35,8 +35,7 @@ exports.handler = async (event, context) => {
 
     const status = tokenText.some(txt => String(parsed.subject).toLowerCase().includes(txt)) ? 'done' : 'pending'
     if (status === 'done') await parseTokenDetails({ parsed, s3Key })
-
-    await createS3Object({
+    const data = {
       s3_key: s3Key,
       email_date: parsed.date,
       status,
@@ -45,7 +44,10 @@ exports.handler = async (event, context) => {
       updated_at: new Date(),
       email_to: parseEmails(parsed.to && parsed.to.text),
       email_from: parseEmails(parsed.from && parsed.from.text)
-    })
+    }
+
+    print('email: ', data)
+    await createS3Object(data)
   } catch (e) {
     print(e)
   }
