@@ -1,7 +1,7 @@
 const tenantInfo = {}
 const keys = obj => Object.keys(obj)
 const mattEmails = ['matt@sceptermarketing.com', 'manual_fulfillment@scepteremail.com']
-const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi
+const emailRegex = /([a-zA-Z0-9._+-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi
 
 module.exports = {
   keys,
