@@ -3,7 +3,18 @@ const AWS = require('aws-sdk')
 const cheerio = require('cheerio')
 const simpleParser = require('mailparser').simpleParser
 const { createAuthToken, createS3Object } = require('./src/db')
-const { print, decode, parseText, findTenant, parseEmails, ENV, tokenText, tenantInfo } = require('./src/utils')
+const {
+  print,
+  decode,
+  parseText,
+  findTenant,
+  parseEmails,
+  ENV,
+  tokenText,
+  tenantInfo,
+  emailRegex,
+  mattDomains
+} = require('./src/utils')
 const { getTenantId, credentialsMapping } = require('./src/request')
 const { AWS_SES_KEY_ID, AWS_SES_SECRET_KEY } = ENV
 
@@ -23,6 +34,7 @@ exports.handler = async (event, context) => {
     const parsed = await simpleParser(file.Body.toString())
     const mapping = await credentialsMapping()
     const forwardedEmail = findTenant(parsed, mapping)
+
     if (/^\d+$/.test(forwardedEmail)) {
       print('no need to call api')
       tenantInfo.name = `tenant_${forwardedEmail}`
@@ -31,10 +43,25 @@ exports.handler = async (event, context) => {
       if (result.tenant) tenantInfo.name = decode(result.tenant, 4)
       else print('no tenant found for this email', { s3Key, forwardedEmail })
     }
+
+    if (!tenantInfo.name && mattDomains.some(x => parseEmails(parsed.to && parsed.to.text).includes(x))) {
+      print('one of the matt domains')
+      tenantInfo.name = 'tenant_2'
+    }
+
+    if (!tenantInfo.name) {
+      print('cannot find email from to, from headers')
+      const extractEmails = arr =>
+        arr.filter(x => x).map(x => x.match(emailRegex)).flat().filter(x => x).map(x => x.toLowerCase())
+      const emails = extractEmails([Array.from(parsed.headers).toString()])
+      const tenantEmail = emails.find(email => mapping[email])
+      if (tenantEmail) tenantInfo.name = `tenant_${mapping[tenantEmail]}`
+    }
     print('tenantInfo.name:', tenantInfo.name)
 
     const status = tokenText.some(txt => String(parsed.subject).toLowerCase().includes(txt)) ? 'done' : 'pending'
     if (status === 'done') await parseTokenDetails({ parsed, s3Key })
+
     const data = {
       s3_key: s3Key,
       email_date: parsed.date,
